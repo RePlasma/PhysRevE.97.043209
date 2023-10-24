@@ -111,22 +111,8 @@ def pushFP(chi0, Nsmpl, tdim, nbins, g0, s0):
     S_intrp = interpolate.interp1d(gmlst, S_lst) #interp1d / CubicSpline
     R_lst = np.array([R40(gm/1800*chi0,gm,Kalpha) for gm in gmlst])
     R_intrp = interpolate.interp1d(gmlst, R_lst)
-    """
-    def S_intrp(x):
-        if x > 2*g0+5*s0:
-            return S_intrpi(2*g0+5*s0)
-        else:
-            return S_intrpi(x)
-        
-    def R_intrp(x):
-        if x > 2*g0+5*s0:
-            return R_intrpi(2*g0+5*s0)
-        else:
-            return R_intrpi(x)
     
-    S_intrp = np.vectorize(S_intrp)
-    R_intrp = np.vectorize(R_intrp)
-    """
+    mom1 = np.zeros(tdim); mom2 = np.zeros_like(mom1)
     
     # for each time step
     for t in tqdm(range(tdim)):
@@ -145,6 +131,10 @@ def pushFP(chi0, Nsmpl, tdim, nbins, g0, s0):
 
         gmdist[gmdist < 1] = 1
         gmdist[gmdist > 2*g0+3*s0] = g0+3*s0
+        
+        # save average and spread
+        mom1[t] = np.mean(gmdist)
+        mom2[t] = np.std(gmdist)
 
         # save distribution
         if t == int(tdim/2):
@@ -164,4 +154,4 @@ def pushFP(chi0, Nsmpl, tdim, nbins, g0, s0):
     gmdist_y,gmdist_x = np.histogram(gmdist_dump3,np.linspace(1,g0+4*s0,nbins))
     gmdist3_y, gmdist3_x = gmdist_y, np.array(arraycenter(gmdist_x))
 
-    return gmdist1_y, gmdist1_x, gmdist2_y, gmdist2_x, gmdist3_y, gmdist3_x
+    return gmdist1_y, gmdist1_x, gmdist2_y, gmdist2_x, gmdist3_y, gmdist3_x, mom1, mom2
